@@ -1,5 +1,5 @@
 <h1>Editing farmer</h1>
-<?php echo form::open('user/update') ?>
+<?php echo Form::open('user/update') ?>
 
  <p>
     <b>Name:</b>
