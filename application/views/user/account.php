@@ -2,6 +2,26 @@
 
 
 <? if (!$token) {
+
+echo <<<EOT
+<a id="start_oauth2">Click here to create your WePay account</a>
+
+<script src="https://static.wepay.com/min/js/wepay.v2.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+WePay.set_endpoint("stage");
+
+WePay.OAuth2.button_init(document.getElementById('start_oauth2'), {
+        "client_id":"153336",
+        "scope":["manage_accounts","view_balance","collect_payments","view_user","send_money","preapprove_payments"],
+        "redirect_uri":"http://ecommlabs.com/wefarm_php/wepayapi",
+        "callback":function(data) {
+            //console.log(data); 
+            window.location="http://ecommlabs.com/wefarm_php/wepayapi?code=" + data.code;
+        } });
+</script>
+<p>
+EOT;
 }
 ?>
 

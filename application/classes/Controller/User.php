@@ -63,7 +63,7 @@ class Controller_User extends Controller_Base {
 			if ($farmer->hasAccountId()) {
 				$this->template->content->wepay = "<a href=". URL::base() . "/user/buy/".$id." class='btn btn-danger btn-large' id='buy-now-button'>Buy ".$farmer->produce." Now!</a>";
 			}
-			$this->template->content->token = false;
+			$this->template->content->token = true;
 			$this->template->content->edit = false;
 		}
 		$this->template->content->name = $farmer->name;
