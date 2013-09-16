@@ -9,8 +9,8 @@
           <a class="brand" href="/wefarm_php/">WeFarm</a>
           <div class="nav-collapse collapse">
             <ul class="nav pull-right">
-              <li class="active"><a href="<? echo url::base().'/user/register' ?>">Register</a></li>
-              <li><a href="<? echo url::base().'/user/login' ?>">Login</a></li>
+              <li class="active"><a href="<? echo url::base().'user/register' ?>">Register</a></li>
+              <li><a href="<? echo url::base().'user/login' ?>">Login</a></li>
             </ul>
           </div>
         </div>
