@@ -1,9 +1,8 @@
 <h1 class="floatLeft"><? echo $name; ?>'s Farm</h1>
 
-
 <? if (!$token) {
+?>
 
-echo <<<EOT
 <a id="start_oauth2">Click here to create your WePay account</a>
 
 <script src="https://static.wepay.com/min/js/wepay.v2.js" type="text/javascript"></script>
@@ -14,14 +13,13 @@ WePay.set_endpoint("stage");
 WePay.OAuth2.button_init(document.getElementById('start_oauth2'), {
         "client_id":"153336",
         "scope":["manage_accounts","view_balance","collect_payments","view_user","send_money","preapprove_payments"],
-        "redirect_uri":"http://ecommlabs.com/wefarm_php/wepayapi",
+        "redirect_uri":"<? echo $base; ?>" + "wepayapi",
         "callback":function(data) {
-            //console.log(data); 
-            window.location="http://ecommlabs.com/wefarm_php/wepayapi?code=" + data.code;
+            window.location="<?echo $base; ?>" + "wepayapi?code=" + data.code;
         } });
 </script>
 <p>
-EOT;
+<?
 }
 ?>
 
