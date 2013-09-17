@@ -25,6 +25,8 @@ class Controller_User extends Controller_Base {
 		else {
 			$this->template->content = View::factory('welcome/index');
 		}
+
+		$this->template->content->base = URL::base($this->request);
 	}
 
 	public function action_account() {
@@ -71,6 +73,7 @@ class Controller_User extends Controller_Base {
 		$this->template->content->farm = $farmer->farm;
 		$this->template->content->produce = $farmer->produce;
 		$this->template->content->price = number_format($farmer->produce_price,2);
+		$this->template->content->base = URL::base($this->request);
 	}
 
 	public function action_buy() {
