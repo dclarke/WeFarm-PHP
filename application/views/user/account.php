@@ -1,6 +1,7 @@
 <h1 class="floatLeft"><? echo $name; ?>'s Farm</h1>
 
 <? if (!$token) {
+        $config = Kohana::$config->load('wepay');
 ?>
 
 <a id="start_oauth2">Click here to create your WePay account</a>
@@ -11,7 +12,7 @@
 WePay.set_endpoint("stage");
 
 WePay.OAuth2.button_init(document.getElementById('start_oauth2'), {
-        "client_id":"153336",
+        "client_id":"<?echo $config->get('client_id'); ?>",
         "scope":["manage_accounts","view_balance","collect_payments","view_user","send_money","preapprove_payments"],
         "redirect_uri":"<? echo $base; ?>" + "wepayapi",
         "callback":function(data) {
