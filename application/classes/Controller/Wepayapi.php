@@ -2,20 +2,11 @@
 
 class Controller_Wepayapi extends Controller_Base {
 
-    /**
-     * Your Client ID
-     */
-    const CLIENT_ID = "153336";
-
-    /**
-     * Your Client Secret
-     */
-    const CLIENT_SECRET = "e913db7934";
-
     public function action_index() {
 
         if (Auth::instance()->logged_in()) {
-            WePay::useStaging(self::CLIENT_ID, self::CLIENT_SECRET);
+            $config = Kohana::$config->load('wepay');
+            WePay::useStaging($config->get('client_id'), $config->get('client_secret'));
             $base_url = URL::site(NULL, TRUE);
             $redirect_uri = $base_url . 'wepayapi';
             $scope = WePay::$all_scopes;
@@ -47,7 +38,8 @@ class Controller_Wepayapi extends Controller_Base {
 
     public static function create_checkout($merchant) {
 
-        WePay::useStaging(self::CLIENT_ID, self::CLIENT_SECRET);
+        $config = Kohana::$config->load('wepay');
+        WePay::useStaging($config->get('client_id'), $config->get('client_secret'));
         $wepay = new WePay($merchant->getAccessToken());
         $response = $wepay->request('checkout/create/', array(
                     'account_id'          => $merchant->getAccountId(),
