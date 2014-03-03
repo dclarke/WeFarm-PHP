@@ -5,17 +5,17 @@ class WePay {
 	/**
 	 * Version number - sent in user agent string
 	 */
-	const VERSION = '0.1.4';
+	const VERSION = '0.2.1';
 
 	/**
 	 * Scope fields
 	 * Passed into Wepay::getAuthorizationUri as array
 	 */
 	const SCOPE_MANAGE_ACCOUNTS     = 'manage_accounts';     // Open and interact with accounts
-	const SCOPE_VIEW_BALANCE        = 'view_balance';        // View account balances
 	const SCOPE_COLLECT_PAYMENTS    = 'collect_payments';    // Create and interact with checkouts
 	const SCOPE_VIEW_USER           = 'view_user';           // Get details about authenticated user
 	const SCOPE_PREAPPROVE_PAYMENTS = 'preapprove_payments'; // Create and interact with preapprovals
+	const SCOPE_MANAGE_SUBSCRIPTIONS   = 'manage_subscriptions'; // Subscriptions
 	const SCOPE_SEND_MONEY          = 'send_money';          // For withdrawals
 
 	/**
@@ -28,16 +28,23 @@ class WePay {
 	 */
 	private static $client_secret;
 
+
+	/**
+	 * API Version 
+	 * https://www.wepay.com/developer/reference/versioning
+	 */
+	private static $api_version;
+
 	/**
 	 * @deprecated Use WePay::getAllScopes() instead.
 	 */
 	public static $all_scopes = array(
 		self::SCOPE_MANAGE_ACCOUNTS,
-		self::SCOPE_VIEW_BALANCE,
 		self::SCOPE_COLLECT_PAYMENTS,
 		self::SCOPE_PREAPPROVE_PAYMENTS,
 		self::SCOPE_VIEW_USER,
 		self::SCOPE_SEND_MONEY,
+		self::SCOPE_MANAGE_SUBSCRIPTIONS
 	);
 
 	/**
@@ -61,11 +68,11 @@ class WePay {
 	public static function getAllScopes() {
 		return array(
 			self::SCOPE_MANAGE_ACCOUNTS,
-			self::SCOPE_VIEW_BALANCE,
+		    self::SCOPE_MANAGE_SUBSCRIPTIONS,
 			self::SCOPE_COLLECT_PAYMENTS,
 			self::SCOPE_PREAPPROVE_PAYMENTS,
 			self::SCOPE_VIEW_USER,
-			self::SCOPE_SEND_MONEY,
+			self::SCOPE_SEND_MONEY
 		);
 	}
 
@@ -138,13 +145,14 @@ class WePay {
 	 * @return void
 	 * @throws RuntimeException
 	 */
-	public static function useProduction($client_id, $client_secret) {
+	public static function useProduction($client_id, $client_secret, $api_version = null) {
 		if (self::$production !== null) {
 			throw new RuntimeException('API mode has already been set.');
 		}
 		self::$production    = true;
 		self::$client_id     = $client_id;
 		self::$client_secret = $client_secret;
+		self::$api_version   = $api_version;
 	}
 
 	/**
@@ -154,13 +162,38 @@ class WePay {
 	 * @return void
 	 * @throws RuntimeException
 	 */
-	public static function useStaging($client_id, $client_secret) {
+	public static function useStaging($client_id, $client_secret, $api_version = null) {
 		if (self::$production !== null) {
 			throw new RuntimeException('API mode has already been set.');
 		}
 		self::$production    = false;
 		self::$client_id     = $client_id;
 		self::$client_secret = $client_secret;
+		self::$api_version   = $api_version;
+	}
+
+	/**
+	 * Returns the current environment.
+	 * @return string "none" (not configured), "production" or "staging".
+  	 */
+	public static function getEnvironment() {
+		if(self::$production === null) {
+			return 'none';
+		} else if(self::$production) {
+			return 'production';
+		} else {
+			return 'staging';
+		}
+	}
+	
+	/**
+	 * Set Api Version
+	 * https://www.wepay.com/developer/reference/versioning
+	 * 
+	 * @param string $version  Api Version to send in call request header
+	 */
+	public static function setApiVersion($version) {
+	    self::$api_version = $version;
 	}
 
 	/**
@@ -191,6 +224,12 @@ class WePay {
 	{
 		self::$ch = curl_init();
 		$headers = array_merge(array("Content-Type: application/json"), $headers); // always pass the correct Content-Type header
+
+		// send Api Version header
+		if(!empty(self::$api_version)) {
+			$headers[] = "Api-Version: " . self::$api_version;
+		}
+
 		curl_setopt(self::$ch, CURLOPT_USERAGENT, 'WePay v2 PHP SDK v' . self::VERSION);
 		curl_setopt(self::$ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt(self::$ch, CURLOPT_HTTPHEADER, $headers);
