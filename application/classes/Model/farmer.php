@@ -17,7 +17,7 @@ class Model_farmer extends ORM {
                     'currencies'    => array("USD")
                     ));
         }
-        catch (WePayException $e) {
+        catch (Exception $e) {
             // Something went wrong - normally you would log
             // this and give your user a more informative message
             echo $e->getMessage();
