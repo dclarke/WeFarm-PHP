@@ -6,7 +6,9 @@ class Controller_Wepayapi extends Controller_Base {
 
         if (Auth::instance()->logged_in()) {
             $config = Kohana::$config->load('wepay');
-            WePay::useStaging($config->get('client_id'), $config->get('client_secret'));
+            // set API Version. Change this to the API Version you want to use.
+            $API_VERSION = "2014-01-08";
+            WePay::useStaging($config->get('client_id'), $config->get('client_secret'), $API_VERSION);
             $base_url = URL::site(NULL, TRUE);
             $redirect_uri = $base_url . 'wepayapi';
             $scope = WePay::$all_scopes;
@@ -21,13 +23,16 @@ class Controller_Wepayapi extends Controller_Base {
             else {
                 $info = WePay::getToken($_GET['code'], $redirect_uri);
                 if ($info) {
-                    $farmer->saveAccessToken($info->access_token);
-                    $farmer->createAccount();
-                    $this->template->content = "WePay Account Created! You can now purchase goods! <a href=\"" . URL::base() . "\">Back</a>";
+
+                    if ($farmer->createAccount($info->access_token)) {
+                        $this->template->content = "WePay Account Created! You can now purchase goods! <a href=\"" . URL::base() . "\">Back</a>";
+                    } else {
+                        $this->template->content = "WePay Account Failed! <a href=\"" . URL::base() . "\">Back</a>";
+                    }
                 } 
                 else {
                     // Unable to obtain access token
-                    echo 'Unable to obtain access token from WePay.';
+                    $this->template->content = "WePay Account Failed! <a href=\"" . URL::base() . "\">Back</a>";
                 }
             }
         } 
@@ -39,7 +44,9 @@ class Controller_Wepayapi extends Controller_Base {
     public static function create_checkout($merchant) {
 
         $config = Kohana::$config->load('wepay');
-        WePay::useStaging($config->get('client_id'), $config->get('client_secret'));
+        // set API Version. Change this to the API Version you want to use.
+        $API_VERSION = "2014-01-08";
+        WePay::useStaging($config->get('client_id'), $config->get('client_secret'), $API_VERSION);
         $wepay = new WePay($merchant->getAccessToken());
         $response = $wepay->request('checkout/create/', array(
                     'account_id'          => $merchant->getAccountId(),

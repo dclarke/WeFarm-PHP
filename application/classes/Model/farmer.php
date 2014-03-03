@@ -6,13 +6,26 @@
  */
 class Model_farmer extends ORM {
 
-    public function createAccount() {
-        $wepay = new WePay($this->getAccessToken());
-        $response = $wepay->request('account/create/', array(
+    public function createAccount($access_token) {
+        $wepay = new WePay($access_token);
+
+        try {
+            $response = $wepay->request('account/create/', array(
                     'name'          => $this->name,
-                    'description'   => $this->name."'s WeFarm account"
+                    'description'   => $this->name."'s WeFarm account",
+                    'country'       => "US",
+                    'currencies'    => array("USD")
                     ));
+        }
+        catch (WePayException $e) {
+            // Something went wrong - normally you would log
+            // this and give your user a more informative message
+            echo $e->getMessage();
+            return false;
+        }
         $this->saveAccountId($response->account_id);
+        $this->saveAccessToken($access_token); 
+        return true;
     }
 
     public function saveAccessToken($access_token){
