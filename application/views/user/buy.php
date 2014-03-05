@@ -2,4 +2,12 @@
 <br />
 <p><a href="<? echo $return_uri ?>">← Back to <? echo $farm ?></a></p>
 <br />
-<iframe src="<? echo $checkout_uri ?>" width="600" height="300"></iframe>
+
+<div id="wepay-iframe-div">
+       <script type="text/javascript" src="https://stage.wepay.com/min/js/iframe.wepay.js">
+       </script>
+
+       <script type="text/javascript">
+           WePay.iframe_checkout("wepay-iframe-div", "<? echo $checkout_uri ?>");
+       </script>
+</div>
