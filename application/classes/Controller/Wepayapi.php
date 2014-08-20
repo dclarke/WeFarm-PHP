@@ -8,22 +8,21 @@ class Controller_Wepayapi extends Controller_Base {
             $config = Kohana::$config->load('wepay');
             // set API Version. Change this to the API Version you want to use.
             $API_VERSION = "2014-01-08";
-            WePay::useStaging($config->get('client_id'), $config->get('client_secret'), $API_VERSION);
+            WePay::useCustom($config->get('client_id'), $config->get('client_secret'), $API_VERSION, $config->get('web_server'), $config->get('api_server'));
             $base_url = URL::site(NULL, TRUE);
             $redirect_uri = $base_url . 'wepayapi';
             $scope = WePay::$all_scopes;
 
             $user = Auth::instance()->get_user();
             $farmer = ORM::factory('farmer')->where('email', '=', $user->email)->find();
-
+	    $auth_options = array("user_country" => $farmer->country);
             if (empty($_GET['code'])) {
-                $uri = WePay::getAuthorizationUri($scope, $redirect_uri);
+                $uri = WePay::getAuthorizationUri($scope, $redirect_uri, $auth_options);
                 HTTP::redirect($uri);
             } 
             else {
                 $info = WePay::getToken($_GET['code'], $redirect_uri);
                 if ($info) {
-
                     if ($farmer->createAccount($info->access_token)) {
                         $this->template->content = "WePay Account Created! You can now purchase goods! <a href=\"" . URL::base() . "\">Back</a>";
                     } else {
@@ -46,14 +45,15 @@ class Controller_Wepayapi extends Controller_Base {
         $config = Kohana::$config->load('wepay');
         // set API Version. Change this to the API Version you want to use.
         $API_VERSION = "2014-01-08";
-        WePay::useStaging($config->get('client_id'), $config->get('client_secret'), $API_VERSION);
+        WePay::useCustom($config->get('client_id'), $config->get('client_secret'), $API_VERSION, $config->get('web_server'), $config->get('api_server'));
         $wepay = new WePay($merchant->getAccessToken());
         $response = $wepay->request('checkout/create/', array(
                     'account_id'          => $merchant->getAccountId(),
                     'short_description'   => "Purchasing ".$merchant->produce." from ".$merchant->name.".",
                     'type' 				  => 'goods',
                     'amount'			  => $merchant->produce_price,
-                    'mode'				  => 'iframe'
+                    'mode'				  => 'iframe',
+                    'currency'            => $merchant->currencies
                     ));
         return $response->checkout_uri;
     }

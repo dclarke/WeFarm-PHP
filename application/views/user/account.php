@@ -6,15 +6,19 @@
 
 <a id="start_oauth2">Click here to create your WePay account</a>
 
-<script src="https://static.wepay.com/min/js/wepay.v2.js" type="text/javascript"></script>
+<script src="<?echo $config->get('web_server'); ?>min/js/wepay.v2.js" type="text/javascript"></script>
 <script type="text/javascript">
 
 WePay.set_endpoint("stage");
+WePay.endpoint = "<?echo $config->get('api_server'); ?>";
+WePay.domain   = "<?echo $config->get('web_server'); ?>";
+WePay.domainStatic = "<?echo $config->get('web_server'); ?>";
 
 WePay.OAuth2.button_init(document.getElementById('start_oauth2'), {
         "client_id":"<?echo $config->get('client_id'); ?>",
         "scope":["manage_accounts","view_balance","collect_payments","view_user","send_money","preapprove_payments"],
         "redirect_uri":"<? echo $base; ?>" + "wepayapi",
+        "user_country": "<? echo $country; ?>",
         "callback":function(data) {
             window.location="<?echo $base; ?>" + "wepayapi?code=" + data.code;
         } });
@@ -25,6 +29,9 @@ WePay.OAuth2.button_init(document.getElementById('start_oauth2'), {
 ?>
 
 <p> <? echo $wepay; ?></p>
+<p>
+<p>API Registration</p>
+<p> <? echo $apiregister; ?></p>
 <p>
 <b>Name:</b>
 <? echo $name; ?>
@@ -47,6 +54,10 @@ WePay.OAuth2.button_init(document.getElementById('start_oauth2'), {
 <p>
 <b>Produce price:</b>
 <? echo '$'.$price; ?>
+</p>
+
+<b>Country:</b>
+<? echo $country; ?>
 </p>
 <p><p>
 <? if ($edit) {

@@ -25,6 +25,15 @@
     <label for="farmer_produce_price">Produce price</label>
     <?php echo Form::input('price','',array('id' => 'price')) ?>
   </div>
+  <div class="field">
+    <label for="farmer_country">Country</label>
+    <?php echo Form::select('country', array('US' => 'US', 'CA' => 'CA'), null, null) ?>
+  </div>
+  <div class="field">
+    <label for="farmer_currencies">Currency</label>
+    <?php echo Form::select('currencies', array('USD' => 'USD', 'CAD' => 'CAD'), null, null) ?>
+  </div>
+
   <div class="actions">
     <?php echo Form::submit('submit','Create Farmer') ?>
   </div>

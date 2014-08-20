@@ -35,6 +35,11 @@ class WePay {
 	 */
 	private static $api_version;
 
+
+        private static $web_server;
+
+        private static $api_server;
+
 	/**
 	 * @deprecated Use WePay::getAllScopes() instead.
 	 */
@@ -87,13 +92,12 @@ class WePay {
 	 * @return string URI to which you must redirect your user to grant access to your application
 	 */
 	public static function getAuthorizationUri(array $scope, $redirect_uri, array $options = array()) {
-		// This does not use WePay::getDomain() because the user authentication
+		// This does not use W because the user authentication
 		// domain is different than the API call domain
 		if (self::$production === null) {
 			throw new RuntimeException('You must initialize the WePay SDK with WePay::useStaging() or WePay::useProduction()');
 		}
-		$domain = self::$production ? 'https://www.wepay.com' : 'https://stage.wepay.com';
-		$uri = $domain . '/v2/oauth2/authorize?';
+		$uri = self::$web_server . '/v2/oauth2/authorize?';
 		$uri .= http_build_query(array(
 			'client_id'    => self::$client_id,
 			'redirect_uri' => $redirect_uri,
@@ -101,20 +105,9 @@ class WePay {
 			'state'        => empty($options['state'])      ? '' : $options['state'],
 			'user_name'    => empty($options['user_name'])  ? '' : $options['user_name'],
 			'user_email'   => empty($options['user_email']) ? '' : $options['user_email'],
+                        'user_country' => empty($options['user_country']) ? 'US' : $options['user_country']
 		), '', '&');
 		return $uri;
-	}
-
-	private static function getDomain() {
-		if (self::$production === true) {
-			return 'https://wepayapi.com/v2/';
-		}
-		elseif (self::$production === false) {
-			return 'https://stage.wepayapi.com/v2/';
-		}
-		else {
-			throw new RuntimeException('You must initialize the WePay SDK with WePay::useStaging() or WePay::useProduction()');
-		}
 	}
 
 	/**
@@ -149,12 +142,28 @@ class WePay {
 		if (self::$production !== null) {
 			throw new RuntimeException('API mode has already been set.');
 		}
-		self::$production    = true;
+		self::$production    = "custom";
 		self::$client_id     = $client_id;
 		self::$client_secret = $client_secret;
 		self::$api_version   = $api_version;
+                self::$web_server    = "https://wepay.com";
+                self::$api_server    = "https://wepayapi.com/v2/";
 	}
 
+        /**
+
+        */
+        public static function useCustom($client_id, $client_secret, $api_version = null, $web_server = null, $api_server = null) {
+		if (self::$production !== null && self::$staging !== null) {
+                        throw new RuntimeException('API mode has already been set.');
+                }
+		self::$production    = "production";
+                self::$client_id     = $client_id;
+                self::$client_secret = $client_secret;
+                self::$api_version   = $api_version;
+                self::$web_server    = $web_server;
+                self::$api_server    = $api_server;
+	}
 	/**
 	 * Configure SDK to run against WePay's staging servers
 	 * @param string $client_id      Your application's client id
@@ -162,14 +171,17 @@ class WePay {
 	 * @return void
 	 * @throws RuntimeException
 	 */
+
 	public static function useStaging($client_id, $client_secret, $api_version = null) {
 		if (self::$production !== null) {
 			throw new RuntimeException('API mode has already been set.');
 		}
-		self::$production    = false;
+		self::$production    = "staging";
 		self::$client_id     = $client_id;
 		self::$client_secret = $client_secret;
 		self::$api_version   = $api_version;
+                self::$web_server    = "https://stage.wepay.com";
+                self::$api_server    = "https://stage.wepayapi.com/v2/";
 	}
 
 	/**
@@ -179,11 +191,8 @@ class WePay {
 	public static function getEnvironment() {
 		if(self::$production === null) {
 			return 'none';
-		} else if(self::$production) {
-			return 'production';
-		} else {
-			return 'staging';
-		}
+		} 
+		return self::$production;
 	}
 	
 	/**
@@ -229,20 +238,16 @@ class WePay {
 		if(!empty(self::$api_version)) {
 			$headers[] = "Api-Version: " . self::$api_version;
 		}
-
 		curl_setopt(self::$ch, CURLOPT_USERAGENT, 'WePay v2 PHP SDK v' . self::VERSION);
 		curl_setopt(self::$ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt(self::$ch, CURLOPT_HTTPHEADER, $headers);
 		curl_setopt(self::$ch, CURLOPT_TIMEOUT, 30); // 30-second timeout, adjust to taste
 		curl_setopt(self::$ch, CURLOPT_POST, !empty($values)); // WePay's API is not strictly RESTful, so all requests are sent as POST unless there are no request values
-		
-		$uri = self::getDomain() . $endpoint;
+		$uri = self::$api_server . $endpoint;
 		curl_setopt(self::$ch, CURLOPT_URL, $uri);
-		
 		if (!empty($values)) {
 			curl_setopt(self::$ch, CURLOPT_POSTFIELDS, json_encode($values));
 		}
-		
 		$raw = curl_exec(self::$ch);
 		if ($errno = curl_errno(self::$ch)) {
 			// Set up special handling for request timeouts

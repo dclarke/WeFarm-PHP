@@ -57,5 +57,7 @@ CREATE TABLE `farmers` (
   `wepay_access_token` text,
   `wepay_account_id` bigint(20) DEFAULT NULL,
   `farm` text,
+  `country` varchar(2) DEFAULT 'US',
+  `currencies` varchar(128) DEFAULT 'USD',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8;
