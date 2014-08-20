@@ -27,11 +27,11 @@
   </div>
   <div class="field">
     <label for="farmer_country">Country</label>
-    <?php echo Form::select('country', array('US' => 'US', 'CA' => 'CA'), null, null) ?>
+    <?php echo Form::select('country', array('US' => 'US', 'CA' => 'CA'), null, array('id' => 'country')) ?>
   </div>
   <div class="field">
     <label for="farmer_currencies">Currency</label>
-    <?php echo Form::select('currencies', array('USD' => 'USD', 'CAD' => 'CAD'), null, null) ?>
+    <?php echo Form::select('currencies', array('USD' => 'USD', 'CAD' => 'CAD'), null, array('id' => 'currencies')) ?>
   </div>
 
   <div class="actions">
