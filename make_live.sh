@@ -1,5 +1,5 @@
 #!/bin/bash
-
-chown -R sites:sites application/logs application/cache
+mkdir -p application/logs application/cache
+chown -R sites:sites ./
 chmod -R 775 application/logs application/cache
 
