@@ -27,6 +27,37 @@ class Model_farmer extends ORM {
         $this->saveAccessToken($access_token); 
         return true;
     }
+   
+    public function checkAccountStatus() {
+	if(isset($this->wepay_access_token)) {
+		$wepay = new WePay($this->wepay_access_token);
+		try {
+			$params = array('account_id'     => $this->wepay_account_id);
+         		$response = $wepay->request('/account', $params);
+		} catch (Exception $e) {
+			var_dump($e->getMessage());
+            		return "unknown";
+		}
+		return $response->state;
+	}
+	return "foobar";
+    }
+
+    public function get_update_uri() {
+        if($this->wepay_access_token) {
+                $wepay = new WePay($this->wepay_access_token);
+                try {
+                        $params = array('account_id'     => $this->wepay_account_id, 
+                                         'mode'           => 'iframe');
+                        $response = $wepay->request('/account/get_update_uri', $params);
+                } catch (Exception $e) {
+                        echo $e->getMessage();
+                        return "unknown";
+                }
+                return $response->uri;
+        }
+        return "unknown";
+    }
 
     public function saveAccessToken($access_token){
         $this->wepay_access_token = $access_token;

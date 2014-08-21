@@ -24,14 +24,11 @@ WePay.OAuth2.button_init(document.getElementById('start_oauth2'), {
         } });
 </script>
 <p>
-<?
+<?  
 }
 ?>
 
 <p> <? echo $wepay; ?></p>
-<p>
-<p>API Registration</p>
-<p> <? echo $apiregister; ?></p>
 <p>
 <b>Name:</b>
 <? echo $name; ?>

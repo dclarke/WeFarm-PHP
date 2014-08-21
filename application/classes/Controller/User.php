@@ -6,17 +6,21 @@ class Controller_User extends Controller_Base {
 		if (Auth::instance()->logged_in()){
 			$user = Auth::instance()->get_user();
 			$farmer = ORM::factory('farmer')->where('email', '=', $user->email)->find();
+			$API_VERSION = "2014-01-08";
+			$config = Kohana::$config->load('wepay');
+			WePay::useCustom($config->get('client_id'), $config->get('client_secret'), $API_VERSION, $config->get('web_server'), $config->get('api_server'));
 			$this->template->content = View::factory('user/account');
 			if (!($farmer->hasAccessToken())) {
-				$this->template->content->wepay = "<b>Please create an account to manage your money: <p><a class='wepay-widget-button wepay-blue' href=" . URL::base() . "wepayapi>Click here to create your WePay account</a>";
-				$this->template->content->apiregister = "<a class='wepay-widget-button item-sold-out' href=" . URL::base() . "register>Click here to create your WePay account via API</a>";
+				$this->template->content->wepay = "<b>Please create an account to manage your money: <p><a class='wepay-widget-button wepay-blue' href=" . URL::base();
+				$this->template->content->wepay .= "wepayapi>Click here to create your WePay account</a><p>API Register</p><p><a class='wepay-widget-button item-sold-out' href=" . URL::base() . "register>Click here to create your WePay account via API</a>";
 				$this->template->content->token = false;
-			} else {
+			} else if ($farmer->checkAccountStatus() == "action_required") {
+				$this->template->content->token = true;
+				$this->template->content->wepay = "<p><a class='btn btn-danger btn-large' id='buy-now-button' href= " . URL::base() . "user/account_update/>Update my account!</a>";
+			}else {
 				$this->template->content->wepay = '';
-				$this->template->content->apiregister = '';
 				$this->template->content->token = true;
 			}
-
 			$this->template->content->name = $farmer->name;
 			$this->template->content->email = $farmer->email;
 			$this->template->content->farm = $farmer->farm;
@@ -29,7 +33,6 @@ class Controller_User extends Controller_Base {
 		else {
 			$this->template->content = View::factory('welcome/index');
 		}
-
 		$this->template->content->base = URL::base($this->request);
 	}
 
@@ -39,6 +42,9 @@ class Controller_User extends Controller_Base {
 			HTTP::redirect('/');
 		}
 		$farmer = ORM::factory('farmer')->where('id', '=', $id)->find();
+		$config = Kohana::$config->load('wepay');
+		$API_VERSION = "2014-01-08";
+                WePay::useCustom($config->get('client_id'), $config->get('client_secret'), $API_VERSION, $config->get('web_server'), $config->get('api_server'));
 		$this->template->content = View::factory('user/account');
 		if (Auth::instance()->logged_in()) {
 			$user = Auth::instance()->get_user();
@@ -52,24 +58,24 @@ class Controller_User extends Controller_Base {
 			if ($farmer->hasAccessToken()) {
 				$this->template->content->token = true;
 			}
-
 			if (!($farmer->hasAccessToken())) {
-				$this->template->content->wepay = "<b>Please create an account to manage your money: <p><a class='wepay-widget-button wepay-blue' href=" . URL::base() . "wepayapi>Click here to create your WePay account</a>";
-				$this->template->content->apiregister = "<a class='wepay-widget-button item-sold-out' href=" . URL::base() . "register>Click here to create your WePay account via API</a>";
+				$this->template->content->wepay = "<b>Please create an account to manage your money: <p><a class='wepay-widget-button wepay-blue' href=" . URL::base();
+                                $this->template->content->wepay .= "wepayapi>Click here to create your WePay account</a><p>API Register</p><p><a class='wepay-widget-button item-sold-out' href=" . URL::base() . "register>Click here to create your WePay account via API</a>";
 				$this->template->content->token = false;
-			}
+			}  
+			else if ($farmer->checkAccountStatus() == "action_required") {
+				$this->template->content->token = true;
+                                $this->template->content->wepay = "<p><a class='btn btn-danger btn-large' id='buy-now-button' href= " . URL::base() . "user/account_update/>Update my account!</a>";
+                        }
 			else if (!($this->template->content->edit) && $farmer->hasAccountId()) {
 				$this->template->content->wepay = "<a href=" . URL::base() . "user/buy/".$id." class='btn btn-danger btn-large' id='buy-now-button'>Buy ".$farmer->produce." Now!</a>";
-				$this->template->content->apiregister = '';
 			}
 			else {
 				$this->template->content->wepay = '';
-				$this->template->content->apiregister = '';
 			}
 		}
 		else {
 			$this->template->content->wepay = '';
-			$this->template->content->apiregister = '';
 			if ($farmer->hasAccountId()) {
 				$this->template->content->wepay = "<a href=". URL::base() . "user/buy/".$id." class='btn btn-danger btn-large' id='buy-now-button'>Buy ".$farmer->produce." Now!</a>";
 			}
@@ -230,22 +236,35 @@ class Controller_User extends Controller_Base {
 		}
 	}
 
-    public function action_delete() {
+	public function action_delete() {
 		if (Auth::instance()->logged_in()){
 			$this->template->content = "Delete? Really?";
 			$user = Auth::instance()->get_user();
 			$farmer = ORM::factory('farmer')->where('email', '=', $user->email)->find();
-
-		    Auth::instance()->logout();
-            $farmer->delete();
-            $user->delete();
-		    HTTP::redirect('/');	
+			Auth::instance()->logout();
+			$farmer->delete();
+			$user->delete();
+			HTTP::redirect('/');	
 		}
 		else{
 			$this->template->content = "Error, you're not logged in!";
 		}
-
     }
+
+	public function action_account_update() {
+		if (Auth::instance()->logged_in()){
+			$API_VERSION = "2014-01-08";
+                        $config = Kohana::$config->load('wepay');
+                        WePay::useCustom($config->get('client_id'), $config->get('client_secret'), $API_VERSION, $config->get('web_server'), $config->get('api_server'));
+			$user = Auth::instance()->get_user();
+			$farmer = ORM::factory('farmer')->where('email', '=', $user->email)->find();
+			$this->template->content = View::factory('user/update');
+			$this->template->content->update_uri = $farmer->get_update_uri();
+		}
+		else {
+                        $this->template->content = "Error, you're not logged in!";
+		}
+	}
 
 	public function action_update(){
 		try{
